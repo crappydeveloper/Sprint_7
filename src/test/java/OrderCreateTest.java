@@ -1,23 +1,19 @@
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 import io.restassured.RestAssured;
-
 import org.junit.runners.Parameterized;
 import org.junit.runner.RunWith;
-
 import org.junit.Before;
 import org.junit.Test;
-
+import ru.yandex.praktikum.Order;
+import ru.yandex.praktikum.Service;
+import ru.yandex.praktikum.api.client.OrdersClient;
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.hamcrest.Matchers.notNullValue;
-
-
-
 
 @RunWith(Parameterized.class)
 public class OrderCreateTest {
-
     private final String firstName;
     private final String lastName;
     private final String address;
@@ -40,7 +36,7 @@ public class OrderCreateTest {
         this.color = color;
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "Создание заказа. Тестовые данные: {0} {1} {2} {3} {4} {5} {6} {7} {8}")
     public static Object[][] getOrderData() {
         List<String> colorBlack = new ArrayList<>();
         colorBlack.add("BLACK");
@@ -64,15 +60,16 @@ public class OrderCreateTest {
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = "http://qa-scooter.praktikum-services.ru";
+        RestAssured.baseURI = Service.BASE_URI;
     }
 
     @Test
+    @DisplayName("Создание заказа с разными цветами")
     public void orderCreateColorsTest() {
-        Response response = Order.orderCreate(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, color);
+        Response orderCreateResponse = OrdersClient.getOrderCreateResponse(new Order(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, color));
 
-        response.then().assertThat().body("track", notNullValue())
+        orderCreateResponse.then().assertThat().statusCode(201)
                 .and()
-                .statusCode(201);
+                .body("track", notNullValue());
     }
 }

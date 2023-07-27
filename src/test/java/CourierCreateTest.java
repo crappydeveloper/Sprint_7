@@ -1,58 +1,66 @@
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import static org.hamcrest.Matchers.equalTo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.After;
+import ru.yandex.praktikum.Courier;
+import ru.yandex.praktikum.Service;
+import ru.yandex.praktikum.api.client.CourierClient;
 
 
 public class CourierCreateTest {
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = "http://qa-scooter.praktikum-services.ru";
+        RestAssured.baseURI = Service.BASE_URI;
     }
 
     @Test
+    @DisplayName("Создание нового курьера")
     public void createCourierTest() {
-        Response response = Courier.createCourier("sadfss", "1qaz2wsx", "gusenitsa");
+        Response createCourierResponse = CourierClient.getCreateCourierResponse(new Courier("sadfss", "1qaz2wsx", "gusenitsa"));
 
-        response.then().assertThat().body("ok", equalTo(true))
+        createCourierResponse.then().assertThat().statusCode(201)
                 .and()
-                .statusCode(201);
+                .body("ok", equalTo(true));
     }
 
     @Test
+    @DisplayName("Попытка создания дубликата существующего курьера")
     public void createDuplicateCourierTest() {
-        Courier.createCourier("sadfss", "1qaz2wsx", "gusenitsa");
-        Response response = Courier.createCourier("sadfss", "1qaz2wsx", "gusenitsa");
+        CourierClient.getCreateCourierResponse(new Courier("sadfss", "1qaz2wsx", "gusenitsa"));
+        Response response = CourierClient.getCreateCourierResponse(new Courier("sadfss", "1qaz2wsx", "gusenitsa"));
 
-        response.then().assertThat().body("message", equalTo("Этот логин уже используется. Попробуйте другой."))
+        response.then().assertThat().statusCode(409)
                 .and()
-                .statusCode(409);
+                .body("message", equalTo("Этот логин уже используется. Попробуйте другой."));
     }
 
     @Test
+    @DisplayName("Попытка создания курьера без указания необходимых полей")
     public void createCourierNoRequiredFieldTest() {
-        Response response = Courier.createCourier("sadfss", "", "gusenitsa");
+        Response noRequiredFieldResponse = CourierClient.getCreateCourierResponse(new Courier("sadfss", "", "gusenitsa"));
 
-        response.then().assertThat().body("message", equalTo("Недостаточно данных для создания учетной записи"))
+        noRequiredFieldResponse.then().assertThat().statusCode(400)
                 .and()
-                .statusCode(400);
+                .body("message", equalTo("Недостаточно данных для создания учетной записи"));
     }
 
     @Test
+    @DisplayName("Попытка создания курьера с уже существующим логином")
     public void createCourierLoginDuplicateTest() {
-        Courier.createCourier("sadfss", "1qaz2wsx", "gusenitsa");
-        Response response = Courier.createCourier("sadfss", "1qazaaa2wsx", "gusenitsaa");
+        CourierClient.getCreateCourierResponse(new Courier("sadfss", "1qaz2wsx", "gusenitsa"));
+        Response loginDuplicateResponse = CourierClient.getCreateCourierResponse(new Courier("sadfss", "1qazaaa2wsx", "gusenitsaa"));
 
-        response.then().assertThat().body("message", equalTo("Этот логин уже используется. Попробуйте другой."))
+        loginDuplicateResponse.then().assertThat().statusCode(409)
                 .and()
-                .statusCode(409);
+                .body("message", equalTo("Этот логин уже используется. Попробуйте другой."));
     }
 
     @After
     public void tearDown() {
-        Courier.deleteCourierByLoginAndPassword("sadfss", "1qaz2wsx");
+        CourierClient.deleteCourierByLoginAndPassword(new Courier("sadfss", "1qaz2wsx"));
     }
 }

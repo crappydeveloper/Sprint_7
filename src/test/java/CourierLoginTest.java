@@ -1,3 +1,4 @@
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.Response;
 import io.restassured.RestAssured;
 
@@ -7,54 +8,61 @@ import static org.hamcrest.Matchers.equalTo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.After;
+import ru.yandex.praktikum.Courier;
+import ru.yandex.praktikum.Service;
+import ru.yandex.praktikum.api.client.CourierClient;
 
 
 public class CourierLoginTest {
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = "http://qa-scooter.praktikum-services.ru";
-        Courier.createCourier("sadfss", "1qaz2wsx", "gusenitsa");
+        RestAssured.baseURI = Service.BASE_URI;
+        CourierClient.getCreateCourierResponse(new Courier("sadfss", "1qaz2wsx", "gusenitsa"));
     }
 
     @Test
+    @DisplayName("Авторизация курьера")
     public void loginCourierTest() {
-        Response response = Courier.loginCourier("sadfss", "1qaz2wsx");
+        Response loginCourierResponse = CourierClient.getLoginCourierResponse(new Courier("sadfss", "1qaz2wsx"));
 
-        response.then().assertThat().body("id", notNullValue())
+        loginCourierResponse.then().assertThat().statusCode(200)
                 .and()
-                .statusCode(200);
+                .body("id", notNullValue());
     }
 
     @Test
+    @DisplayName("Попытка авторизации курьера с несуществующим логином")
     public void loginNonexistentCourierTest() {
-        Response response = Courier.loginCourier("yhrbvferdsgruy", "1qaz2wsxx");
+        Response loginNonexistentCourierResponse = CourierClient.getLoginCourierResponse(new Courier("yhrbvferdsgruy", "1qaz2wsxx"));
 
-        response.then().assertThat().body("message", equalTo("Учетная запись не найдена"))
+        loginNonexistentCourierResponse.then().assertThat().statusCode(404)
                 .and()
-                .statusCode(404);
+                .body("message", equalTo("Учетная запись не найдена"));
     }
 
     @Test
+    @DisplayName("Попытка авторизации курьера с некорректным паролем")
     public void loginCourierIncorrectDataTest() {
-        Response response = Courier.loginCourier("sadfss", "1qaz2wsxx");
+        Response loginCourierIncorrectDataResponse = CourierClient.getLoginCourierResponse(new Courier("sadfss", "1qaz2wsxx"));
 
-        response.then().assertThat().body("message", equalTo("Учетная запись не найдена"))
+        loginCourierIncorrectDataResponse.then().assertThat().statusCode(404)
                 .and()
-                .statusCode(404);
+                .body("message", equalTo("Учетная запись не найдена"));
     }
 
     @Test
+    @DisplayName("Попытка авторизации курьера без указания необходимых полей")
     public void loginCourierNoRequiredFieldTest() {
-        Response response = Courier.loginCourier("sadfss", "");
+        Response loginCourierNoRequiredFieldResponse = CourierClient.getLoginCourierResponse(new Courier("sadfss", ""));
 
-        response.then().assertThat().body("message", equalTo("Недостаточно данных для входа"))
+        loginCourierNoRequiredFieldResponse.then().assertThat().statusCode(400)
                 .and()
-                .statusCode(400);
+                .body("message", equalTo("Недостаточно данных для входа"));
     }
 
     @After
     public void tearDown() {
-        Courier.deleteCourierByLoginAndPassword("sadfss", "1qaz2wsx");
+        CourierClient.deleteCourierByLoginAndPassword(new Courier("sadfss", "1qaz2wsx"));
     }
 }

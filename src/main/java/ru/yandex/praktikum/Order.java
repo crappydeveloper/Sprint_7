@@ -1,7 +1,6 @@
-import io.restassured.response.Response;
-import static io.restassured.RestAssured.given;
-import java.util.List;
+package ru.yandex.praktikum;
 
+import java.util.List;
 
 public class Order {
     private String firstName;
@@ -99,22 +98,5 @@ public class Order {
 
     public void setColor(List<String> color) {
         this.color = color;
-    }
-
-
-    public static Response orderCreate(String firstName, String lastName, String address, int metroStation, String phone, int rentTime, String deliveryDate, String comment, List<String> color) {
-        Order json = new Order(firstName, lastName, address, metroStation, phone, rentTime, deliveryDate, comment, color);
-
-        return (Response) given()
-                .header("Content-type", "application/json")
-                .and()
-                .body(json)
-                .when()
-                .post("/api/v1/orders");
-    }
-
-    public static Response getOrdersList() {
-        return (Response) given()
-                .get("/api/v1/orders");
     }
 }
