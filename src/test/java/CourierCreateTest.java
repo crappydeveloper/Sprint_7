@@ -31,9 +31,9 @@ public class CourierCreateTest {
     @DisplayName("Попытка создания дубликата существующего курьера")
     public void createDuplicateCourierTest() {
         CourierClient.getCreateCourierResponse(new Courier("sadfss", "1qaz2wsx", "gusenitsa"));
-        Response response = CourierClient.getCreateCourierResponse(new Courier("sadfss", "1qaz2wsx", "gusenitsa"));
+        Response createCourierResponse = CourierClient.getCreateCourierResponse(new Courier("sadfss", "1qaz2wsx", "gusenitsa"));
 
-        response.then().assertThat().statusCode(409)
+        createCourierResponse.then().assertThat().statusCode(409)
                 .and()
                 .body("message", equalTo("Этот логин уже используется. Попробуйте другой."));
     }

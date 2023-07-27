@@ -16,9 +16,9 @@ public class OrderListTest {
     @Test
     @DisplayName("Получение списка заказов")
     public void getOrdersListTest() {
-        Response response = OrdersClient.getOrdersListResponse();
+        Response ordersListResponse = OrdersClient.getOrdersListResponse();
 
-        response.then().assertThat().statusCode(200)
+        ordersListResponse.then().assertThat().statusCode(200)
                 .and()
                 .body("orders", notNullValue());
     }
